@@ -132,7 +132,7 @@
                                 <button class="nav-link ${activeTabId === 'stadiums-tab' ? 'active' : ''}" id="stadiums-tab" ${bs.toggle}="tab" ${bs.target}="#stadiums" type="button" role="tab">Stadiums</button>
                             </li>
                         </ul>
-                        <div class="d-flex align-items-center mb-1">
+                        <div class="d-flex align-items-center mb-1"> 
                             <div class="search-container ${bs.marginEnd}2" style="min-width: 250px;">
                                 <div class="input-group shadow-sm">
                                     <div class="input-group-prepend">
