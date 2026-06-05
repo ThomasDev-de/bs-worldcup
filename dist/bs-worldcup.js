@@ -50,7 +50,11 @@
                 textStart: bsVer === 4 ? 'text-left' : 'text-start',
                 opacity10: bsVer === 4 ? '' : 'bg-opacity-10',
                 badgePill: bsVer === 4 ? 'badge-pill' : 'rounded-pill',
-                bgLight: bsVer === 4 ? 'bg-light' : 'bg-light text-secondary border'
+                bgLight: bsVer === 4 ? 'bg-light' : 'bg-body-secondary border',
+                bgDark: bsVer === 4 ? 'bg-dark text-white' : 'bg-body-secondary text-body border-bottom',
+                bgScore: bsVer === 4 ? 'bg-dark text-white' : 'bg-body-emphasis text-body',
+                bgInput: bsVer === 4 ? 'bg-white' : 'bg-body',
+                textMuted: bsVer === 4 ? 'text-muted' : 'text-secondary'
             };
 
             const getFavorites = () => {
@@ -136,9 +140,9 @@
                             <div class="search-container ${bs.marginEnd}2" style="min-width: 250px;">
                                 <div class="input-group shadow-sm">
                                     <div class="input-group-prepend">
-                                        <span class="input-group-text bg-white ${bs.borderEnd}0"><i class="bi bi-search text-muted"></i></span>
+                                        <span class="input-group-text ${bs.bgInput} ${bs.borderEnd}0"><i class="bi bi-search ${bs.textMuted}"></i></span>
                                     </div>
-                                    <input type="text" id="wcSearch" class="form-control ${bs.borderStart}0 ${bs.paddingStart}0" placeholder="Search team..." value="${searchTerm}">
+                                    <input type="text" id="wcSearch" class="form-control ${bs.bgInput} ${bs.borderStart}0 ${bs.paddingStart}0" placeholder="Search team..." value="${searchTerm}">
                                     ${searchTerm ? `<div class="input-group-append"><button class="btn btn-outline-secondary ${bs.borderStart}0" type="button" id="wcClearSearch"><i class="bi bi-x-lg"></i></button></div>` : ''}
                                 </div>
                             </div>
@@ -384,8 +388,8 @@
                 const quali = data['worldcup.quali_playoffs.json'];
                 if (!quali) return '<p>No qualification data available.</p>';
                 
-                let html = `<div class="mt-2 mb-4 p-3 bg-light rounded shadow-sm border-left ${bs.borderStart}4 border-primary" ${bsVer === 4 ? 'style="border-left: 4px solid #007bff !important;"' : ''}>`;
-                html += '<h2 class="h4 mb-0 text-primary fw-bold"><i class="bi bi-trophy-fill me-2"></i>Qualification & Playoffs</h2>';
+                let html = `<div class="mt-2 mb-4 p-3 ${bs.bgLight} rounded shadow-sm border-left ${bs.borderStart}4 border-primary" ${bsVer === 4 ? 'style="border-left: 4px solid #007bff !important;"' : ''}>`;
+                html += `<h2 class="h4 mb-0 text-primary fw-bold"><i class="bi bi-trophy-fill ${bs.marginEnd}2"></i>Qualification & Playoffs</h2>`;
                 html += '</div>';
                 html += processMatchData(quali);
                 
@@ -517,12 +521,12 @@
                                             
                                             <!-- Score -->
                                             <div class="col-2 text-center px-0">
-                                                <div class="bg-dark text-white rounded px-1 py-1 fw-bold d-inline-block shadow-sm" style="min-width: 50px; font-size: 0.9rem;">
+                                                <div class="${bs.bgScore} rounded px-1 py-1 fw-bold d-inline-block shadow-sm" style="min-width: 50px; font-size: 0.9rem;">
                                                     ${score1}:${score2}
                                                 </div>
                                                 ${isAet || isPen ? `
                                                     <div class="mt-0 small text-uppercase" style="font-size: 0.6rem; line-height: 1;">
-                                                        ${isPen ? `<span class="text-danger fw-bold" title="Penalty Shootout ${match.score.p[0]}:${match.score.p[1]}">PSO</span>` : '<span class="text-muted">AET</span>'}
+                                                        ${isPen ? `<span class="text-danger fw-bold" title="Penalty Shootout ${match.score.p[0]}:${match.score.p[1]}">PSO</span>` : `<span class="${bs.textMuted}">AET</span>`}
                                                     </div>
                                                 ` : ''}
                                             </div>
@@ -542,7 +546,7 @@
                                     <!-- Info Icons -->
                                     <div class="col-12 col-md-2 text-md-right ${bs.textEnd}">
                                         ${match.group ? `<span class="badge ${bs.badgePill} ${bs.bgLight} mb-1 d-inline-block" style="font-size: 0.7rem;">${match.group}</span><br>` : ''}
-                                        ${match.ground ? `<span class="text-muted" style="font-size: 0.75rem;" title="${match.ground}"><i class="bi bi-geo-alt-fill"></i> ${match.ground.split(',')[0]}</span>` : ''}
+                                        ${match.ground ? `<span class="${bs.textMuted}" style="font-size: 0.75rem;" title="${match.ground}"><i class="bi bi-geo-alt-fill"></i> ${match.ground.split(',')[0]}</span>` : ''}
                                     </div>
                                 </div>
                             </div>
@@ -640,13 +644,13 @@
                     html += `
                         <div class="col">
                             <div class="card h-100 shadow-sm border-0">
-                                <div class="card-header bg-dark text-white fw-bold d-flex justify-content-between align-items-center">
+                                <div class="card-header ${bs.bgDark} fw-bold d-flex justify-content-between align-items-center">
                                     <span>${gn}</span>
-                                    <small class="text-white-50">Standings</small>
+                                    <small class="${bsVer === 4 ? 'text-white-50' : 'text-muted'}">Standings</small>
                                 </div>
                                 <div class="table-responsive">
                                     <table class="table table-hover table-sm mb-0 align-middle" style="font-size: 0.85rem;">
-                                        <thead class="table-light">
+                                        <thead class="${bsVer === 4 ? 'table-light' : 'table-secondary'}">
                                             <tr>
                                                 <th class="text-center" style="width: 30px;">#</th>
                                                 <th>Team</th>
@@ -668,8 +672,8 @@
                                                 const diff = t.goalsFor - t.goalsAgainst;
                                                 return `
                                                     <li class="d-none"></li> <!-- Fix for map in template literal -->
-                                                    <tr class="${isFav ? 'table-warning' : ''}">
-                                                        <td class="text-center text-muted">${index + 1}</td>
+                                                    <tr class="${isFav ? 'table-warning text-dark' : ''}">
+                                                        <td class="text-center ${bs.textMuted}">${index + 1}</td>
                                                         <td>
                                                             <div class="d-flex align-items-center">
                                                                 <img src="${getFlagUrl(info.code, t.name)}" onerror="this.src='https://flagcdn.com/w40/un.png'" class="${bs.marginEnd}2 border shadow-sm" style="width:20px; height:12px; object-fit:cover;">
@@ -681,11 +685,11 @@
                                                         <td class="text-center d-none d-sm-table-cell">${t.draw}</td>
                                                         <td class="text-center d-none d-sm-table-cell">${t.loss}</td>
                                                         <td class="text-center text-nowrap">${t.goalsFor}:${t.goalsAgainst}</td>
-                                                        <td class="text-center ${diff > 0 ? 'text-success' : (diff < 0 ? 'text-danger' : 'text-muted')}">${diff > 0 ? '+' : ''}${diff}</td>
+                                                        <td class="text-center ${diff > 0 ? 'text-success' : (diff < 0 ? 'text-danger' : bs.textMuted)}">${diff > 0 ? '+' : ''}${diff}</td>
                                                         <td class="text-center fw-bold text-primary">${t.points}</td>
                                                         <td class="${bsVer === 4 ? 'text-right' : 'text-end'}">
                                                             <button class="btn btn-link toggle-favorite p-0 text-decoration-none" data-team="${t.name}">
-                                                                <i class="bi ${isFav ? 'bi-star-fill text-warning' : 'bi-star text-muted'}"></i>
+                                                                <i class="bi ${isFav ? 'bi-star-fill text-warning' : `bi-star ${bs.textMuted}`}"></i>
                                                             </button>
                                                         </td>
                                                     </tr>
@@ -739,11 +743,11 @@
                                         ${code ? `<img src="${getFlagUrl(code, team.name)}" class="${bs.marginEnd}3 border" onerror="this.style.display='none'" style="width:40px;">` : ''}
                                         <div>
                                             <h5 class="card-title mb-0">${team.name}</h5>
-                                            <small class="text-muted">${code}${team.continent ? ` | ${team.continent}` : ''}</small>
+                                            <small class="${bs.textMuted}">${code}${team.continent ? ` | ${team.continent}` : ''}</small>
                                         </div>
                                     </div>
                                     <button class="btn btn-link toggle-favorite p-0 text-decoration-none" data-team="${team.name}" title="Toggle favorite">
-                                        <i class="bi ${isFav ? 'bi-star-fill text-warning' : 'bi-star text-muted'}" style="font-size: 1.25rem;"></i>
+                                        <i class="bi ${isFav ? 'bi-star-fill text-warning' : `bi-star ${bs.textMuted}`}" style="font-size: 1.25rem;"></i>
                                     </button>
                                 </div>
                             </div>
