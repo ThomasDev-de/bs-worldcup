@@ -1,12 +1,13 @@
 {
   "name": "webcito/bs-worldcup",
   "description": "A lightweight jQuery plugin to display World Cup 2026 data using Bootstrap 4 or 5.",
+  "version": "1.0.0",
   "minimum-stability": "stable",
-  "license": "MIT",
+  "license": "proprietary",
   "authors": [
     {
       "name": "thomas",
-      "email": "email@example.com"
+      "email": "t.kirsch@webcito.de"
     }
   ],
   "require": {
