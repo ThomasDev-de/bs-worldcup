@@ -712,6 +712,9 @@
                 let teams = Array.isArray(teamsData) ? teamsData : teamsData.teams;
                 if (!teams || !teams.length) return '<p>No team data found in expected format.</p>';
 
+                // Sortiere Teams alphabetisch nach Name
+                teams = [...teams].sort((a, b) => a.name.localeCompare(b.name));
+
                 if (searchTerm) {
                     const s = searchTerm.toLowerCase();
                     teams = teams.filter(t => 
