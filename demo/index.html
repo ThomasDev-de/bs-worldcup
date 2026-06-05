@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Worldcup</title>
+    <link href="../vendor/twbs/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../vendor/twbs/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+</head>
+<body>
+<div class="container py-5">
+    <h1>World Cup 2026</h1>
+    <p class="lead">The plugin uses the GitHub repository <a href="https://github.com/openfootball/worldcup.json">openfootball/worldcup.json</a></p>
+    <div id="worldcup" class="mt-4">
+        <div class="text-center p-5 border bg-light rounded">
+            <h3>World Cup Info</h3>
+            <p>Initializing plugin...</p>
+        </div>
+    </div>
+</div>
+<script src="../vendor/components/jquery/jquery.min.js"></script>
+<script src="../vendor/twbs/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../dist/bs-worldcup.js"></script>
+<script>
+    $(document).ready(function() {
+        $('#worldcup').bsWorldcup({
+            locale: 'de-DE'
+        });
+    });
+</script>
+</body>
+</html>
