@@ -76,6 +76,33 @@
             const init = async () => {
                 $this.html(`<div class="text-center p-5"><div class="spinner-border" role="status"><span class="${bs.hidden}">Loading...</span></div><p class="mt-2">Loading World Cup data...</p></div>`);
                 
+                // Event-Delegation für interaktive Elemente
+                $this.on('click', '.toggle-favorite', function(e) {
+                    e.preventDefault();
+                    const teamName = $(this).data('team');
+                    toggleFavorite(teamName);
+                });
+
+                $this.on('input', '#wcSearch', function() {
+                    searchTerm = $(this).val();
+                    updateFilteredContent();
+                });
+
+                $this.on('click', '#wcClearSearch', function() {
+                    searchTerm = '';
+                    render();
+                    $this.find('#wcSearch').focus();
+                });
+
+                $this.on('click', '#wcRefresh', function() {
+                    init();
+                });
+
+                // Tab-Wechsel (Bootstrap Event) via Delegation
+                $this.on('shown.bs.tab', 'button[' + bs.toggle + '="tab"]', function() {
+                    updateFilteredContent();
+                });
+
                 try {
                     await loadData();
                     render();
@@ -170,36 +197,6 @@
                     </div>
                 `;
                 $this.html(html);
-
-                // Event Handler für Favoriten
-                $this.find('.toggle-favorite').on('click', function(e) {
-                    e.preventDefault();
-                    const teamName = $(this).data('team');
-                    toggleFavorite(teamName);
-                });
-
-                // Event Handler für Suche
-                $this.find('#wcSearch').on('input', function() {
-                    searchTerm = $(this).val();
-                    // Wir rendern nur den Content neu, um den Fokus im Input zu behalten
-                    updateFilteredContent();
-                });
-
-                $this.find('#wcClearSearch').on('click', function() {
-                    searchTerm = '';
-                    render();
-                });
-
-                // Event Handler für Refresh
-                $this.find('#wcRefresh').on('click', function() {
-                    init();
-                });
-
-                // Event Handler für Tab-Wechsel (Bootstrap Event)
-                // Wenn der Nutzer den Tab wechselt, wenden wir die aktuelle Suche auf den neuen Tab an
-                $this.find('button[' + bs.toggle + '="tab"]').on('shown.bs.tab', function () {
-                    updateFilteredContent();
-                });
             };
 
             const updateFilteredContent = () => {
@@ -497,7 +494,7 @@
                     const isFav = favs.includes(t1Name) || favs.includes(t2Name);
 
                     html += `
-                        <div class="card wc-match-card mb-2 shadow-sm border-0 ${bs.borderStart} ${bs.borderStart}5 ${isFav ? 'border-warning' : 'border-light'}" style="border-left-width: 5px !important; ${bsVer === 4 ? 'border-left-style: solid;' : ''}">
+                        <div class="card wc-match-card mb-2 shadow-sm border-0 ${bsVer === 4 ? 'border-left' : 'border-start'} ${bs.borderStart}5 ${isFav ? 'border-warning' : 'border-light'}" style="border-left-width: 5px !important; ${bsVer === 4 ? 'border-left-style: solid;' : ''}">
                             <div class="card-body p-2 p-md-3">
                                 <div class="row align-items-center">
                                     <!-- Zeit/Datum -->
