@@ -136,6 +136,7 @@
             };
 
             const render = () => {
+                cachedKnockoutSlotMap = null;
                 // Merke aktuellen Tab
                 const activeTabId = $this.find('.nav-link.active').attr('id') || 'matches-tab';
 
@@ -455,13 +456,279 @@
                 return subHtml;
             };
 
+            let cachedKnockoutSlotMap = null;
+
+            const getAllWorldcupMatches = () => {
+                const wc = data['worldcup.json'];
+                if (!wc) return [];
+
+                let matches = [];
+
+                if (wc.rounds) {
+                    wc.rounds.forEach(r => {
+                        if (r.matches) matches = matches.concat(r.matches);
+                    });
+                } else if (wc.matches) {
+                    matches = wc.matches;
+                }
+
+                return matches;
+            };
+
+            const findGroupNameByLetter = (groupLetter, groupData) => {
+                const letter = String(groupLetter).toUpperCase();
+
+                return Object.keys(groupData).find(groupName => {
+                    const normalized = String(groupName).trim().toUpperCase();
+
+                    return (
+                        normalized === letter ||
+                        normalized === `GROUP ${letter}` ||
+                        normalized.endsWith(` ${letter}`)
+                    );
+                });
+            };
+
+            const calculateGroupStandings = () => {
+                const matches = getAllWorldcupMatches();
+                const groupData = {};
+
+                matches.forEach(m => {
+                    if (!m.group) return;
+
+                    if (!groupData[m.group]) groupData[m.group] = {};
+
+                    const t1 = typeof m.team1 === 'object' ? m.team1.name : m.team1;
+                    const t2 = typeof m.team2 === 'object' ? m.team2.name : m.team2;
+
+                    if (!t1 || !t2) return;
+
+                    if (!groupData[m.group][t1]) {
+                        groupData[m.group][t1] = {
+                            name: t1,
+                            group: m.group,
+                            played: 0,
+                            win: 0,
+                            draw: 0,
+                            loss: 0,
+                            goalsFor: 0,
+                            goalsAgainst: 0,
+                            points: 0
+                        };
+                    }
+
+                    if (!groupData[m.group][t2]) {
+                        groupData[m.group][t2] = {
+                            name: t2,
+                            group: m.group,
+                            played: 0,
+                            win: 0,
+                            draw: 0,
+                            loss: 0,
+                            goalsFor: 0,
+                            goalsAgainst: 0,
+                            points: 0
+                        };
+                    }
+
+                    const score1 = getScoreValue(m, 0);
+                    const score2 = getScoreValue(m, 1);
+
+                    if (score1 === '-' || score2 === '-') return;
+
+                    const s1 = parseInt(score1, 10);
+                    const s2 = parseInt(score2, 10);
+
+                    if (Number.isNaN(s1) || Number.isNaN(s2)) return;
+
+                    groupData[m.group][t1].played++;
+                    groupData[m.group][t2].played++;
+
+                    groupData[m.group][t1].goalsFor += s1;
+                    groupData[m.group][t1].goalsAgainst += s2;
+
+                    groupData[m.group][t2].goalsFor += s2;
+                    groupData[m.group][t2].goalsAgainst += s1;
+
+                    if (s1 > s2) {
+                        groupData[m.group][t1].win++;
+                        groupData[m.group][t1].points += 3;
+                        groupData[m.group][t2].loss++;
+                    } else if (s1 < s2) {
+                        groupData[m.group][t2].win++;
+                        groupData[m.group][t2].points += 3;
+                        groupData[m.group][t1].loss++;
+                    } else {
+                        groupData[m.group][t1].draw++;
+                        groupData[m.group][t1].points += 1;
+                        groupData[m.group][t2].draw++;
+                        groupData[m.group][t2].points += 1;
+                    }
+                });
+
+                const standings = {};
+
+                Object.keys(groupData).forEach(groupName => {
+                    standings[groupName] = Object.values(groupData[groupName]).sort((a, b) => {
+                        if (b.points !== a.points) return b.points - a.points;
+
+                        const diffA = a.goalsFor - a.goalsAgainst;
+                        const diffB = b.goalsFor - b.goalsAgainst;
+
+                        if (diffB !== diffA) return diffB - diffA;
+                        if (b.goalsFor !== a.goalsFor) return b.goalsFor - a.goalsFor;
+
+                        return a.name.localeCompare(b.name);
+                    });
+                });
+
+                return standings;
+            };
+
+            const compareThirdPlacedTeams = (a, b) => {
+                if (b.points !== a.points) return b.points - a.points;
+
+                const diffA = a.goalsFor - a.goalsAgainst;
+                const diffB = b.goalsFor - b.goalsAgainst;
+
+                if (diffB !== diffA) return diffB - diffA;
+                if (b.goalsFor !== a.goalsFor) return b.goalsFor - a.goalsFor;
+
+                return a.name.localeCompare(b.name);
+            };
+
+            const getBestThirdPlacedTeams = (standings) => {
+                const thirdPlacedTeams = [];
+
+                Object.keys(standings).forEach(groupName => {
+                    const groupTeams = standings[groupName];
+
+                    if (groupTeams && groupTeams[2]) {
+                        thirdPlacedTeams.push({
+                            ...groupTeams[2],
+                            sourceGroup: groupName,
+                            sourceGroupLetter: String(groupName).trim().slice(-1).toUpperCase()
+                        });
+                    }
+                });
+
+                return thirdPlacedTeams
+                    .sort(compareThirdPlacedTeams)
+                    .slice(0, 8);
+            };
+
+            const buildKnockoutSlotMap = () => {
+                const standings = calculateGroupStandings();
+                const slotMap = {};
+                const matches = getAllWorldcupMatches();
+
+                // Feste Slots wie 1A, 2A, 1F, 2C usw.
+                Object.keys(standings).forEach(groupName => {
+                    const groupLetter = String(groupName).trim().slice(-1).toUpperCase();
+
+                    standings[groupName].forEach((team, index) => {
+                        const rank = index + 1;
+                        slotMap[`${rank}${groupLetter}`] = team.name;
+                    });
+                });
+
+                // Beste Gruppendritte berechnen
+                const bestThirds = getBestThirdPlacedTeams(standings);
+
+                // Alle 3er-Slots aus den K.-o.-Spielen einsammeln, z.B. 3A/B/C/D/F
+                const thirdSlots = [];
+
+                matches.forEach(match => {
+                    [match.team1, match.team2].forEach(teamValue => {
+                        if (typeof teamValue !== 'string') return;
+
+                        const raw = teamValue.trim().toUpperCase();
+
+                        if (/^3[A-L](\/[A-L])+$/.test(raw) && !thirdSlots.includes(raw)) {
+                            thirdSlots.push(raw);
+                        }
+                    });
+                });
+
+                // Slots mit wenigen Optionen zuerst belegen
+                thirdSlots.sort((a, b) => {
+                    const countA = a.replace(/^3/, '').split('/').length;
+                    const countB = b.replace(/^3/, '').split('/').length;
+                    return countA - countB;
+                });
+
+                const usedThirdTeams = new Set();
+
+                thirdSlots.forEach(slot => {
+                    const allowedLetters = slot.replace(/^3/, '').split('/').map(v => v.toUpperCase());
+
+                    const candidates = bestThirds
+                        .filter(team => {
+                            return (
+                                allowedLetters.includes(team.sourceGroupLetter) &&
+                                !usedThirdTeams.has(team.name)
+                            );
+                        })
+                        .sort(compareThirdPlacedTeams);
+
+                    if (candidates.length > 0) {
+                        const selected = candidates[0];
+                        slotMap[slot] = selected.name;
+                        usedThirdTeams.add(selected.name);
+                    }
+                });
+
+                return slotMap;
+            };
+
+            const resolveTeamSlot = (teamValue) => {
+                if (!teamValue) return teamValue;
+
+                if (typeof teamValue === 'object') {
+                    return teamValue;
+                }
+
+                const raw = String(teamValue).trim();
+                const normalized = raw.toUpperCase();
+
+                // Nur bekannte Slot-Formate auflösen:
+                // 1A, 2A, 3A, 4A oder 3A/B/C/D/F
+                const isFixedSlot = /^[1-4][A-L]$/.test(normalized);
+                const isThirdSlot = /^3[A-L](\/[A-L])+$/.test(normalized);
+
+                if (!isFixedSlot && !isThirdSlot) {
+                    return teamValue;
+                }
+
+                if (!cachedKnockoutSlotMap) {
+                    cachedKnockoutSlotMap = buildKnockoutSlotMap();
+                }
+
+                const resolvedName = cachedKnockoutSlotMap[normalized];
+
+                if (!resolvedName) {
+                    return teamValue;
+                }
+
+                const info = getTeamInfo(resolvedName);
+
+                return {
+                    name: resolvedName,
+                    code: info.code || ''
+                };
+            };
+
+
             const renderMatchList = (matches) => {
                 if (!matches || !matches.length) return '';
                 let html = '<div class="mb-4">';
                 matches.forEach(match => {
-                    const t1Info = typeof match.team1 === 'object' ? match.team1 : getTeamInfo(match.team1);
-                    const t2Info = typeof match.team2 === 'object' ? match.team2 : getTeamInfo(match.team2);
-                    
+                    const resolvedTeam1 = resolveTeamSlot(match.team1);
+                    const resolvedTeam2 = resolveTeamSlot(match.team2);
+
+                    const t1Info = typeof resolvedTeam1 === 'object' ? resolvedTeam1 : getTeamInfo(resolvedTeam1);
+                    const t2Info = typeof resolvedTeam2 === 'object' ? resolvedTeam2 : getTeamInfo(resolvedTeam2);
+
                     const t1Name = t1Info.name;
                     const t1Code = t1Info.code;
                     const t2Name = t2Info.name;
